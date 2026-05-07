@@ -1,30 +1,27 @@
 #ifndef BASE64_H
 #define BASE64_H
 
-#include <stddef.h>
+#define B64_ERR_PARAM -1
+#define B64_ERR_CHAR -2
 
-#define B64_OK          0  // Success
-#define B64_ERR_PARAM  -1  // Invalid argument (e.g., NULL pointer)
-#define B64_ERR_CHAR   -2  // Invalid Base64 character in input
-#define B64_ERR_PADDING -3 // Incorrect padding
-#define B64_ERR_BUF    -4  // Output buffer too small
+#define BASE64_ENCODE_OUT_SIZE(s) ((unsigned int)((((s) + 2) / 3) * 4 + 1))
+#define BASE64_DECODE_OUT_SIZE(s) ((unsigned int)(((s) / 4) * 3))
 
-int base64_encode(const unsigned char *in, size_t inlen, char *out, size_t outcap);
-int base64url_encode(const unsigned char *in, size_t inlen, char *out, size_t outcap);
+// out is null-terminated encode string.
+// return values is out length, exclusive terminating `\0'
 
-int base64_decode(const char *in, size_t inlen, unsigned char *out, size_t outcap, size_t *outlen);
-int base64url_decode(const char *in, size_t inlen, unsigned char *out, size_t outcap, size_t *outlen);
+unsigned int
+base64_encode(const unsigned char *in, unsigned int inlen, char *out);
 
-typedef struct {
-    unsigned int val;
-    int valb;
-    int pad;
-    const unsigned char *map;
-} base64_stream_t;
+unsigned int
+base64url_encode(const unsigned char *in, unsigned int inlen, char *out);
 
-void base64_stream_init(base64_stream_t *s, int urlsafe);
+// return out length or errcode (< 0)
 
-int base64_stream_feed(base64_stream_t *s, const char *in, size_t inlen,
-                       unsigned char *out, size_t outcap, size_t *outlen);
+unsigned int
+base64_decode(const char *in, unsigned int inlen, unsigned char *out);
+
+unsigned int
+base64url_decode(const char *in, unsigned int inlen, unsigned char *out);
 
 #endif
