@@ -24,4 +24,16 @@ base64_decode(const char *in, unsigned int inlen, unsigned char *out);
 unsigned int
 base64url_decode(const char *in, unsigned int inlen, unsigned char *out);
 
+typedef struct {
+    unsigned int state;
+    unsigned int value;
+    int base64url;
+} base64_stream_t;
+
+void
+base64_stream_init(base64_stream_t *s, int base64url);
+
+unsigned int
+base64_stream_feed(base64_stream_t *s, const char *in, unsigned int inlen, unsigned char *out);
+
 #endif

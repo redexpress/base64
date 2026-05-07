@@ -150,3 +150,60 @@ base64url_decode(const char *in, unsigned int inlen, unsigned char *out)
 {
     return base64_decode_core(in, inlen, out, 1);
 }
+
+void
+base64_stream_init(base64_stream_t *s, int base64url)
+{
+    s->state = 0;
+    s->value = 0;
+    s->base64url = base64url;
+}
+
+unsigned int
+base64_stream_feed(base64_stream_t *s, const char *in, unsigned int inlen, unsigned char *out)
+{
+    const unsigned char *de =
+        s->base64url ? decode_url : decode_standard;
+
+    unsigned int j = 0;
+
+    for (unsigned int i = 0; i < inlen; i++) {
+        unsigned char c = (unsigned char)in[i];
+
+        if (c == BASE64_PAD) {
+            break;
+        }
+
+        c = de[c];
+
+        if (c == 255) {
+            return B64_ERR_CHAR;
+        }
+
+        switch (s->state) {
+        case 0:
+            s->value = (c << 2);
+            s->state = 1;
+            break;
+
+        case 1:
+            out[j++] = s->value | (c >> 4);
+            s->value = (c & 0xF) << 4;
+            s->state = 2;
+            break;
+
+        case 2:
+            out[j++] = s->value | (c >> 2);
+            s->value = (c & 0x3) << 6;
+            s->state = 3;
+            break;
+
+        case 3:
+            out[j++] = s->value | c;
+            s->state = 0;
+            break;
+        }
+    }
+
+    return j;
+}

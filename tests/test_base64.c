@@ -154,3 +154,69 @@ Test(base64url_decode, invalid_char) {
     cr_assert_eq(ret, B64_ERR_CHAR);
 }
 
+// stream
+Test(base64_stream, hello_world_single_feed) {
+    base64_stream_t s;
+
+    char in[] = "SGVsbG8gV29ybGQ=";
+    unsigned char out[20] = {0};
+    base64_stream_init(&s, 0);
+    int ret = base64_stream_feed(&s, in, 16, out);
+    cr_assert_eq(ret, 11);
+    cr_assert_arr_eq(out, "Hello World", 11);
+}
+
+Test(base64_stream, hello_world_multi_feed) {
+    base64_stream_t s;
+
+    unsigned char out[20] = {0};
+    int n;
+    int total = 0;
+    base64_stream_init(&s, 0);
+    n = base64_stream_feed(&s, "SGVs", 4, out + total);
+    total += n;
+    n = base64_stream_feed(&s, "bG8g", 4, out + total);
+    total += n;
+    n = base64_stream_feed(&s, "V29y", 4, out + total);
+    total += n;
+    n = base64_stream_feed(&s, "bGQ=", 4, out + total);
+    total += n;
+    cr_assert_eq(total, 11);
+    cr_assert_arr_eq(out, "Hello World", 11);
+}
+
+Test(base64_stream, one_char_chunks) {
+    base64_stream_t s;
+
+    char in[] = "SGVsbG8=";
+    unsigned char out[20] = {0};
+    int total = 0;
+    base64_stream_init(&s, 0);
+    for (int i = 0; i < 8; i++) {
+        int n = base64_stream_feed(&s, &in[i], 1, out + total);
+        total += n;
+    }
+    cr_assert_eq(total, 5);
+    cr_assert_arr_eq(out, "Hello", 5);
+}
+
+Test(base64_stream, urlsafe) {
+    base64_stream_t s;
+
+    char in[] = "Zm9-fg";
+    unsigned char out[20] = {0};
+    base64_stream_init(&s, 1);
+    int ret = base64_stream_feed(&s, in, 6, out);
+    cr_assert_eq(ret, 4);
+    cr_assert_arr_eq(out, "fo~~", 4);
+}
+
+Test(base64_stream, invalid_char) {
+    base64_stream_t s;
+
+    char in[] = "SGVs@A==";
+    unsigned char out[20] = {0};
+    base64_stream_init(&s, 0);
+    int ret = base64_stream_feed(&s, in, 8, out);
+    cr_assert_eq(ret, B64_ERR_CHAR);
+}
