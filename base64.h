@@ -1,6 +1,10 @@
 #ifndef BASE64_H
 #define BASE64_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define B64_ERR_PARAM -1
 #define B64_ERR_CHAR -2
 
@@ -35,5 +39,9 @@ base64_stream_init(base64_stream_t *s, int base64url);
 
 unsigned int
 base64_stream_feed(base64_stream_t *s, const char *in, unsigned int inlen, unsigned char *out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
